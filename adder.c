@@ -4,6 +4,10 @@
 
 int main()
 {
-     printf("Hello World!\n");
+  
+     int num_proc;
+
+     scanf("%d", &num_proc);
+     printf("You chose %d!\n", num_proc);
      return 0;
 }
