@@ -9,6 +9,7 @@
   http://www.tutorialspoint.com/c_standard_library/c_function_rewind.htm
   http://www-ee.eng.hawaii.edu/~tep/EE160/Book/chap7/section2.1.2.html
   http://stackoverflow.com/questions/5139213/count-number-of-line-using-c
+  http://www.cs.usfca.edu/~wolber/SoftwareDev/C/CStructs.htm
  */
 
 #include <stdio.h>
@@ -18,15 +19,25 @@
 #include <string.h>
 #include <time.h>
 
+/*
+ A portion of the file to be processed. Contains on offset and
+ number of elements to process, starting at the offset.
+ */
+typedef struct
+{
+    int offset;
+    int num_elements;
+} file_portion;
+
+// function prototypes
 int count_lines(FILE *in_file);
-int add_nums(int nums[], int offset, int num_elements);
+int add_nums(int nums[], file_portion portion);
 float time_process(char *filename, int num_proc, int should_print_total);
 
 const int BUFFER_SIZE = 100;
 
 int main(int argc, char *argv[])
 {
-
     // get number of parallel processes to utilize
     int num_proc;
     printf("Enter the number of parallel processes to utilize: (1, 2, or 4)\n");
@@ -134,15 +145,26 @@ float time_process(char *filename, int num_proc, int should_print_total)
 	fork_pid = fork();
 	if (fork_pid == 0)
 	{
-	    int offset = proc_id * lines_per_proc;
-	    int num_elements = num_lines_to_get;
-	    int child_sum = add_nums(nums, offset, num_elements);
+	    // get part of file to work on, from parent
+	    file_portion child_portion;
+	    read(pipes_to_child[proc_id][0], &child_portion, sizeof(file_portion));
+
+	    // calculate sum of portion
+	    int child_sum = add_nums(nums, child_portion);
 	    /* printf("proc_id %d sum: %d, offest: %d, num_elements: %d\n", proc_id, child_sum, offset, num_elements); */
 
-	    // write subresult to parent
+	    // send partial sum to parent
 	    write(pipe_to_parent[1], &child_sum, sizeof(int));
 
 	    exit(EXIT_SUCCESS);
+	}
+	else
+	{
+	    file_portion portion;
+	    portion.offset = proc_id * lines_per_proc;
+	    portion.num_elements = num_lines_to_get;
+	    write(pipes_to_child[proc_id][1], &portion, sizeof(file_portion));
+
 	}
     }
 
@@ -152,6 +174,7 @@ float time_process(char *filename, int num_proc, int should_print_total)
     total_sum = 0;
     for (i = 0; i < num_proc; i++)
     {
+	// read partial sum from child
 	int child_sum;
 	read(pipe_to_parent[0], &child_sum, sizeof(int));
 	/* printf("Sum received: %d\n", snum); */
@@ -172,11 +195,11 @@ float time_process(char *filename, int num_proc, int should_print_total)
     return time_spent;
 }
 
-int add_nums(int nums[], int offset, int num_elements)
+int add_nums(int nums[], file_portion portion)
 {
     int sum = 0;
     int i;
-    for (i = offset; i < offset + num_elements; i++)
+    for (i = portion.offset; i < portion.offset + portion.num_elements; i++)
     {
 	sum += nums[i];
     }
