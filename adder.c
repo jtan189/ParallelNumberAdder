@@ -1,3 +1,16 @@
+/*
+  Josh Tan
+  CSCI 474
+  Project 1: Fork and Pipe
+  10/25/13
+
+  Sources:
+  http://stackoverflow.com/questions/5248915/execution-time-of-c-program
+  http://www.tutorialspoint.com/c_standard_library/c_function_rewind.htm
+  http://www-ee.eng.hawaii.edu/~tep/EE160/Book/chap7/section2.1.2.html
+  http://stackoverflow.com/questions/5139213/count-number-of-line-using-c
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -5,14 +18,49 @@
 #include <string.h>
 #include <time.h>
 
-// TODO: cite sources
-/*
-  Sources:
-  http://stackoverflow.com/questions/5248915/execution-time-of-c-program
-  http://www.tutorialspoint.com/c_standard_library/c_function_rewind.htm
- */
+int count_lines(FILE *in_file);
+int add_nums(int nums[], int offset, int num_elements);
+float time_process(char *filename, int num_proc, int should_print_total);
+
+const int BUFFER_SIZE = 100;
 
 int main(int argc, char *argv[])
+{
+
+    // get number of parallel processes to utilize
+    int num_proc;
+    printf("Enter the number of parallel processes to utilize: (1, 2, or 4)\n");
+    scanf("%d", &num_proc);
+
+    int num_tests;
+    // exit if not provided with valid command-line parameter(s)
+    if (argc == 2 || argc == 3) 
+    {
+	num_tests = argc == 3 ? atoi(argv[2]) : 1;
+    }
+    else
+    {
+	printf("Usage: %s <filename>\n", argv[0]);
+	exit(EXIT_FAILURE);
+    }
+
+    int i;
+    float total_time= 0;
+    int should_print_total = 0;
+    for (i = 0; i < num_tests; i++)
+    {
+	if (i == (num_tests - 1))
+	{
+	    should_print_total = 1;
+	}
+	total_time += time_process(argv[1], num_proc, should_print_total);
+    }
+
+    printf("Execution time (averaged over %d test(s)): %f seconds\n", num_tests, total_time / (float) num_tests);
+    exit(EXIT_SUCCESS);
+}
+
+float time_process(char *filename, int num_proc, int should_print_total)
 {
 
     FILE *in_file;
@@ -21,24 +69,10 @@ int main(int argc, char *argv[])
     // start timer
     clock_t begin, end;
     double time_spent;
-
     begin = clock();
 
-
-    // exit if not provided with exactly one command-line parameter
-    if (argc != 2) 
-    {
-	printf("Usage: %s <filename>\n", argv[0]);
-	exit(EXIT_FAILURE);
-    }
-
-    // get number of parellel processes to utilize
-    int num_proc;
-    printf("Enter the number of parallel processes to utilize: (1, 2, or 4)\n");
-    scanf("%d", &num_proc);
-
     // open file for reading
-    in_file = fopen(argv[1], "r");
+    in_file = fopen(filename, "r");
     if (in_file == NULL)
     {
 	printf("Error: Could not open file.\n");
@@ -57,148 +91,118 @@ int main(int argc, char *argv[])
     pipe(pipe_to_parent);
 
     // count the number of lines in the file
-    int count;
-    char line[100];
+    int line_count = 0;
+    line_count = count_lines(in_file);
+    /* printf("Line count: %d\n", line_count); */
 
-    count = 0;
+    int nums[line_count];
+
     i = 0;
+    int proc_id; // proc_id starts at 0
 
-    int nums_size;
+    int lines_per_proc = line_count / num_proc;
 
-    rewind(in_file); // reset position within file
-
-    // read file line by line
-    while (fgets(line, sizeof(line), in_file) != NULL)
+    for (proc_id = 0; proc_id < num_proc; proc_id++)
     {
-	count++;
-    }
+	char line[BUFFER_SIZE];
 
-    nums_size = count;
-    printf("num lines: %d\n", count);
-    rewind(in_file);
+	int num_lines_to_get;
 
-    int nums[count];
-
-    while (fgets(line, sizeof(line), in_file) != NULL)
-    {
-	nums[i] = atoi(line);
-	i++;
-    }
-
-    int num_to_sum;
-    num_to_sum =  nums_size / num_proc;
-    printf("num lines per child: %d\n", num_to_sum);
-
-    // spawn requested number of processes
-    for (i = 0; i < num_proc; i++)
-    {
-	pid_t child_pid;
-	child_pid = fork();
-	if (child_pid == 0)
+	// if the last child, then also process any remainder
+	// that results from unequal division
+	if (proc_id == (num_proc - 1))
 	{
-	    // let child do its thing
-	    /* int num; */
-	    /* read(pipes_to_child[i][0], &num, sizeof(int)); */
-	    /* num *= 2; */
-
-	    int child_sum;
-	    int j;
-	    int child_size;
-
-	    child_sum = 0;
-	    read(pipes_to_child[i][0], &child_size, sizeof(int));
-
-	    for (j = 0; j < child_size; j++)
-	    {
-//		printf("sum before: %d\n", child_sum);
-		child_sum += nums[(i * child_size) + j];
-//		printf("adding %d\n", nums[(i * child_size) + j]);
-
-	    }
-//	    printf("Sending sum: %d", child_sum);
-	    write(pipe_to_parent[1], &child_sum, sizeof(int));
-	    exit(EXIT_SUCCESS);
+	    num_lines_to_get = lines_per_proc + (line_count % num_proc);
+	    /* printf("Leftover to get: %d\n", num_lines_to_get); */
 	}
 	else
 	{
-	    int pnum;
-	    pnum = i;
-	    printf("Just forked %d.\n", child_pid);
-//	    printf("Sent %d.\n", pnum);
-	    write(pipes_to_child[i][1], &num_to_sum, sizeof(int));
+	    num_lines_to_get = lines_per_proc;
+	}
+
+	// process num_lines_to_get
+	int j;
+	for (j = 0; j < num_lines_to_get; j++)
+	{
+	    int index = proc_id * lines_per_proc + j;
+	    fgets(line, sizeof(line), in_file);
+	    nums[index] = atoi(line);
+	}
+
+	// can fork process to work on these
+	pid_t fork_pid;
+	fork_pid = fork();
+	if (fork_pid == 0)
+	{
+	    int offset = proc_id * lines_per_proc;
+	    int num_elements = num_lines_to_get;
+	    int child_sum = add_nums(nums, offset, num_elements);
+	    /* printf("proc_id %d sum: %d, offest: %d, num_elements: %d\n", proc_id, child_sum, offset, num_elements); */
+
+	    // write subresult to parent
+	    write(pipe_to_parent[1], &child_sum, sizeof(int));
+
+	    exit(EXIT_SUCCESS);
 	}
     }
+
+    fclose(in_file);
     
     int total_sum;
     total_sum = 0;
     for (i = 0; i < num_proc; i++)
     {
-	int snum;
-	read(pipe_to_parent[0], &snum, sizeof(int));
-//	printf("Sum received: %d\n", snum);
-	total_sum += snum;
+	int child_sum;
+	read(pipe_to_parent[0], &child_sum, sizeof(int));
+	/* printf("Sum received: %d\n", snum); */
+	total_sum += child_sum;
     }
 
-    printf("Total sum: %d\n", total_sum);
+    // if flag set, print total
+    if (should_print_total)
+    {
+	printf("Total sum: %d\n", total_sum);
+    }
 
-    // wait for to children to finish
-    /* while (num_proc > 0) */
-    /* { */
-    /* 	wait(NULL); */
-    /* 	num_proc--; */
-    /* } */
-
-    /* int sum; */
-
-    /* i = 0; */
-    /* sum = 0; */
-
-    // read file line by line
-    /* char line[100]; */
-    /* while (fgets(line, sizeof(line), in_file) != NULL) */
-    /* { */
-    /* 	sum += atoi(line); */
-    /* } */
-
-    /* for (i = 0; i < nums_size; i++) */
-    /* { */
-    /* 	sum += nums[i]; */
-    /* } */
-
-//    return sum;
-//    sum = add_numbers(nums, nums_size);
-//    printf("Parent: Sum of numbers in %s: %d\n", argv[1], sum);
-
-    fclose(in_file);
-    
     // stop timer
     end = clock();
     time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-    printf("Total time: %f seconds\n", time_spent);
+    /* printf("Total time: %f seconds\n", time_spent); */
 
-    exit(EXIT_SUCCESS);
+    return time_spent;
 }
 
-int add_numbers(int nums[], int nums_size)
+int add_nums(int nums[], int offset, int num_elements)
 {
+    int sum = 0;
     int i;
-    int sum;
-    
-    sum = 0;
-
-    // read file line by line
-    /* char line[100]; */
-    /* while (fgets(line, sizeof(line), in_file) != NULL) */
-    /* { */
-    /* 	sum += atoi(line); */
-    /* } */
-
-    for (i = 0; i < nums_size; i++)
+    for (i = offset; i < offset + num_elements; i++)
     {
 	sum += nums[i];
     }
-
+    
     return sum;
 }
 
+/*
+  Return a count of the number of lines in file. Before returning,
+  this function resets the file position to the beginning of the
+  file.
+ */
+int count_lines(FILE* f)
+{
+    int count;
+    char ch;
+    count = 0;
 
+    while((ch = fgetc(f)) != EOF)
+    {
+	if (ch == '\n')
+	{
+	    count++;
+	}
+    }
+
+    rewind(f); // reset position within file
+    return count;
+}

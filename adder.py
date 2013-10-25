@@ -1,6 +1,5 @@
 import sys
 
-sum = 0
 fnames = []
 
 if len(sys.argv) > 1:
@@ -14,8 +13,12 @@ else:
 print("----------------------")
 for fname in fnames:
     f = open(fname)
+    count = 0
+    total_sum = 0
     for line in f:
-        sum += int(line)
+        total_sum += int(line)
+        count += 1
     print("File: %s" % (fname))
-    print("Total sum: %i" % (sum))
+    print("Num lines: %i" % (count))
+    print("Total sum: %i" % (total_sum))
     print("----------------------")
