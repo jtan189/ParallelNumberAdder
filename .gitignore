@@ -19,6 +19,5 @@
 
 # emacs temp files
 *~
-
-# program input files
-data
+*#
+.#*
