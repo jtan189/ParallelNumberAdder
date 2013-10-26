@@ -1,4 +1,4 @@
-import sys
+import sys, time
 
 fnames = []
 
@@ -12,13 +12,15 @@ else:
 
 print("----------------------")
 for fname in fnames:
+    start_time = time.time()
     f = open(fname)
     count = 0
     total_sum = 0
     for line in f:
         total_sum += int(line)
         count += 1
-    print("File: %s" % (fname))
+    print("Filename: %s" % (fname))
     print("Num lines: %i" % (count))
     print("Total sum: %i" % (total_sum))
+    print("Execution time: %f seconds" % (time.time() - start_time))
     print("----------------------")

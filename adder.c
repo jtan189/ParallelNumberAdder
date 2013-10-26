@@ -259,6 +259,7 @@ float time_process(char *filepath, int num_proc, int should_print_total)
     // if flag set, print total
     if (should_print_total)
     {
+	printf("Num lines: %d\n", total_nums);
 	printf("Total sum: %d\n", total_sum);
     }
 
