@@ -10,7 +10,7 @@ functions.
 
 Usage
 -----
-./a.out <filepath> [<num executions>]
+./a.out _filepath_ [_num executions_]
 
 Versions
 --------
