@@ -35,7 +35,7 @@ typedef struct
 
 // function prototypes
 int add_nums(file_portion portion);
-float time_summation(char *filepath, int num_proc, int should_print_total);
+double time_summation(char *filepath, int num_proc, int should_print);
 int is_num(char *str);
 
 // constant variables
@@ -85,15 +85,15 @@ int main(int argc, char *argv[])
     printf("Filename: %s\n", filepath);
 
     int i;
-    float total_time= 0;
-    int should_print_total = 0;
+    double total_time = 0;
+    int should_print = 0;
     for (i = 0; i < num_tests; i++)
     {
         if (i == (num_tests - 1))
         {
-            should_print_total = 1;
+            should_print = 1;
         }
-        total_time += time_summation(filepath, num_proc, should_print_total);
+        total_time += time_summation(filepath, num_proc, should_print);
     }
 
     if (num_tests == 1)
@@ -102,14 +102,14 @@ int main(int argc, char *argv[])
     }
     else
     {
-        total_time = total_time / (float) num_tests;
-        printf("Execution time: %f seconds (averaged over %d tests)\n", total_time / (float) num_tests, num_tests);
+        total_time = total_time / (double) num_tests;
+        printf("Execution time: %f seconds (averaged over %d tests)\n", total_time, num_tests);
     }
     printf("---------------------------------------------------------\n");
     exit(EXIT_SUCCESS);
 }
 
-float time_summation(char *filepath, int num_proc, int should_print_total)
+double time_summation(char *filepath, int num_proc, int should_print)
 {
 
     int i;
@@ -195,7 +195,7 @@ float time_summation(char *filepath, int num_proc, int should_print_total)
     }
 
     // if flag set, print total
-    if (should_print_total)
+    if (should_print)
     {
         printf("Num lines: %d\n", total_nums);
         printf("Total sum: %d\n", total_sum);
