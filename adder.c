@@ -10,15 +10,17 @@
   http://www-ee.eng.hawaii.edu/~tep/EE160/Book/chap7/section2.1.2.html
   http://stackoverflow.com/questions/5139213/count-number-of-line-using-c
   http://www.cs.usfca.edu/~wolber/SoftwareDev/C/CStructs.htm
+  http://rabbit.eng.miami.edu/info/functions/time.html
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <string.h>
-#include <time.h>
-#include <libgen.h>
+#include <string.h>     // provides strcmp( )
+#include <sys/types.h>  // provides pid_t
+#include <sys/time.h>   // provides gettimeofday( )
+#include <libgen.h>     // provides basename( )
+#include <ctype.h>      // provides isdigit( )
 
 /*
  A portion of the file to be processed. Contains on offset and
@@ -54,24 +56,29 @@ int main(int argc, char *argv[])
     printf("Enter the number of parallel processes to utilize (1, 2, or 4):\n");
     scanf("%d", &num_proc);
 
-    int num_tests = 1;
     // exit if not provided with valid command-line parameter(s)
-    if (argc == 2 || argc == 3) 
-    {
-        if (argc == 3 && (is_num(argv[2]) == 0))
-        {
-            printf("Invalid number of executions specified.\n");
-            exit(EXIT_FAILURE);
-        }
-        else
-        {
-            num_tests = atoi(argv[2]);
-        }
-    }
-    else
+    if (argc > 3) 
     {
         printf("Usage: %s <filepath>\n", argv[0]);
         exit(EXIT_FAILURE);
+    }
+
+    int num_tests;
+    if (argc == 3)
+    {
+	if (is_num(argv[2]) == 0)
+	{
+	    printf("Invalid number of executions specified.\n");
+	    exit(EXIT_FAILURE);
+	}
+	else
+	{
+	    num_tests = atoi(argv[2]);
+	}
+    }
+    else
+    {
+	num_tests = 1;
     }
 
     printf("---------------------------------------------------------\n");
@@ -105,14 +112,13 @@ int main(int argc, char *argv[])
 float time_process(char *filepath, int num_proc, int should_print_total)
 {
 
-    FILE *in_file;
     int i;
     int total_nums;
 
     // start timer
-    clock_t begin, end;
-    double time_spent;
-    begin = clock();
+    struct timeval t1;
+    struct timeval t2;
+    gettimeofday(&t1, NULL);
 
     char *filename = basename(filepath);
 
@@ -196,10 +202,12 @@ float time_process(char *filepath, int num_proc, int should_print_total)
     }
 
     // stop timer
-    end = clock();
-    time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    gettimeofday(&t2, NULL);
+    double t1_s = t1.tv_sec + (t1.tv_usec / 1000000.0);
+    double t2_s = t2.tv_sec + (t2.tv_usec / 1000000.0);
+    double elapsed_time = t2_s - t1_s;
 
-    return time_spent;
+    return elapsed_time;
 }
 
 int add_nums(file_portion portion)
