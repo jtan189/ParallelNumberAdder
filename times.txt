@@ -1,0 +1,117 @@
+jotan@lab13:~/244$ ./a.out data/file1.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+1
+---------------------------------------------------------
+Filename: data/file1.dat
+Num lines: 1000
+Total sum: 454019
+Execution time: 0.000465 seconds (averaged over 50 tests)
+---------------------------------------------------------
+jotan@lab13:~/244$ ./a.out data/file1.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+2
+---------------------------------------------------------
+Filename: data/file1.dat
+Num lines: 1000
+Total sum: 454019
+Execution time: 0.000412 seconds (averaged over 50 tests)
+---------------------------------------------------------
+jotan@lab13:~/244$ ./a.out data/file1.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+4
+---------------------------------------------------------
+Filename: data/file1.dat
+Num lines: 1000
+Total sum: 454019
+Execution time: 0.000459 seconds (averaged over 50 tests)
+---------------------------------------------------------
+
+*********************************************************
+
+jotan@lab13:~/244$ ./a.out data/file2.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+1
+---------------------------------------------------------
+Filename: data/file2.dat
+Num lines: 10000
+Total sum: 5014959
+Execution time: 0.001272 seconds (averaged over 50 tests)
+---------------------------------------------------------
+jotan@lab13:~/244$ ./a.out data/file2.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+2
+---------------------------------------------------------
+Filename: data/file2.dat
+Num lines: 10000
+Total sum: 5014959
+Execution time: 0.000805 seconds (averaged over 50 tests)
+---------------------------------------------------------
+jotan@lab13:~/244$ ./a.out data/file2.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+4
+---------------------------------------------------------
+Filename: data/file2.dat
+Num lines: 10000
+Total sum: 5014959
+Execution time: 0.000675 seconds (averaged over 50 tests)
+---------------------------------------------------------
+
+*********************************************************
+
+jotan@lab13:~/244$ ./a.out data/file3.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+1
+---------------------------------------------------------
+Filename: data/file3.dat
+Num lines: 100000
+Total sum: 51450896
+Execution time: 0.009036 seconds (averaged over 50 tests)
+---------------------------------------------------------
+jotan@lab13:~/244$ ./a.out data/file3.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+2
+---------------------------------------------------------
+Filename: data/file3.dat
+Num lines: 100000
+Total sum: 51450896
+Execution time: 0.003870 seconds (averaged over 50 tests)
+---------------------------------------------------------
+jotan@lab13:~/244$ ./a.out data/file3.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+4
+---------------------------------------------------------
+Filename: data/file3.dat
+Num lines: 100000
+Total sum: 51450896
+Execution time: 0.001309 seconds (averaged over 50 tests)
+---------------------------------------------------------
+
+*********************************************************
+
+jotan@lab13:~/244$ ./a.out data/file4.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+1
+---------------------------------------------------------
+Filename: data/file4.dat
+Num lines: 1000000
+Total sum: 514509773
+Execution time: 0.043546 seconds (averaged over 50 tests)
+---------------------------------------------------------
+jotan@lab13:~/244$ ./a.out data/file4.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+2
+---------------------------------------------------------
+Filename: data/file4.dat
+Num lines: 1000000
+Total sum: 514509773
+Execution time: 0.020717 seconds (averaged over 50 tests)
+---------------------------------------------------------
+jotan@lab13:~/244$ ./a.out data/file4.dat 50
+Enter the number of parallel processes to utilize (1, 2, or 4):
+4
+---------------------------------------------------------
+Filename: data/file4.dat
+Num lines: 1000000
+Total sum: 514509773
+Execution time: 0.010030 seconds (averaged over 50 tests)
+---------------------------------------------------------
