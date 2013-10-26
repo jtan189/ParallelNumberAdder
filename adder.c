@@ -173,8 +173,8 @@ float time_process(char *filepath, int num_proc, int should_print_total)
     	    file_portion portion;
 	    portion.filepath = filepath;
 	    portion.num_lines = total_nums  / num_proc;
-    	    portion.offset = proc_id * portion.num_lines * 4; // STOP HARD CODING FKDLSJFIO#WJRIPO
-    	    write(pipes_to_child[proc_id][1], &portion, sizeof(file_portion));
+	    portion.offset = proc_id * portion.num_lines * 4; // STOP HARD CODING FKDLSJFIO#WJRIPO
+	    write(pipes_to_child[proc_id][1], &portion, sizeof(file_portion));
     	}
     }
     
