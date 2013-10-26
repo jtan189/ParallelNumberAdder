@@ -35,7 +35,7 @@ typedef struct
 
 // function prototypes
 int add_nums(file_portion portion);
-float time_process(char *filepath, int num_proc, int should_print_total);
+float time_summation(char *filepath, int num_proc, int should_print_total);
 int is_num(char *str);
 
 // constant variables
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
         {
             should_print_total = 1;
         }
-        total_time += time_process(filepath, num_proc, should_print_total);
+        total_time += time_summation(filepath, num_proc, should_print_total);
     }
 
     if (num_tests == 1)
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     exit(EXIT_SUCCESS);
 }
 
-float time_process(char *filepath, int num_proc, int should_print_total)
+float time_summation(char *filepath, int num_proc, int should_print_total)
 {
 
     int i;
