@@ -10,7 +10,7 @@
   http://www-ee.eng.hawaii.edu/~tep/EE160/Book/chap7/section2.1.2.html
   http://stackoverflow.com/questions/5139213/count-number-of-line-using-c
   http://www.cs.usfca.edu/~wolber/SoftwareDev/C/CStructs.htm
- */
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,15 +27,16 @@
 typedef struct
 {
     char *filepath;
-    int offset;
-    int size; // in bytes
+    int offset; // in bytes
+    int num_lines;
 } file_portion;
 
 // function prototypes
-//int count_lines(FILE *in_file);
 int add_nums(file_portion portion);
 float time_process(char *filepath, int num_proc, int should_print_total);
+int is_num(char *str);
 
+// constant variables
 const int BUFFER_SIZE = 100;
 const int BYTES_PER_LINE = 6; // might be 4 <###\r\n> + 1 (since will append \0)
 const char *FILE1 = "file1.dat";
@@ -50,14 +51,22 @@ int main(int argc, char *argv[])
 
     // get number of parallel processes to utilize
     int num_proc;
-    printf("Enter the number of parallel processes to utilize: (1, 2, or 4)\n");
+    printf("Enter the number of parallel processes to utilize (1, 2, or 4):\n");
     scanf("%d", &num_proc);
 
-    int num_tests;
+    int num_tests = 1;
     // exit if not provided with valid command-line parameter(s)
     if (argc == 2 || argc == 3) 
     {
-	num_tests = argc == 3 ? atoi(argv[2]) : 1;
+	if (argc == 3 && (is_num(argv[2]) == 0))
+	{
+	    printf("Invalid number of executions specified.\n");
+	    exit(EXIT_FAILURE);
+	}
+	else
+	{
+	    num_tests = atoi(argv[2]);
+	}
     }
     else
     {
@@ -139,10 +148,6 @@ float time_process(char *filepath, int num_proc, int should_print_total)
 	pipe(pipe_to_parent[i]);
     }
 
-    // initialize parent pipe
-//    int pipe_to_parent[2];
-//    pipe(pipe_to_parent);
-
     int proc_id;
     for (proc_id = 0; proc_id < num_proc; proc_id++)
     {
@@ -157,7 +162,6 @@ float time_process(char *filepath, int num_proc, int should_print_total)
 
     	    // calculate sum of portion
     	    int child_sum = add_nums(child_portion);
-    	    /* printf("proc_id %d sum: %d, offest: %d, num_elements: %d\n", proc_id, child_sum, offset, num_elements); */
 
     	    // send partial sum to parent
     	    write(pipe_to_parent[proc_id][1], &child_sum, sizeof(int));
@@ -168,82 +172,11 @@ float time_process(char *filepath, int num_proc, int should_print_total)
     	{
     	    file_portion portion;
 	    portion.filepath = filepath;
-	    portion.size = total_nums  / num_proc;
-//	    printf("__fize__: %d", portion.size);
-    	    portion.offset = proc_id * portion.size * 4; // STOP HARD CODING FKDLSJFIO#WJRIPO
+	    portion.num_lines = total_nums  / num_proc;
+    	    portion.offset = proc_id * portion.num_lines * 4; // STOP HARD CODING FKDLSJFIO#WJRIPO
     	    write(pipes_to_child[proc_id][1], &portion, sizeof(file_portion));
     	}
     }
-
-
-    /* // count the number of lines in the file */
-    /* int line_count = 0; */
-    /* line_count = count_lines(in_file); */
-    /* /\* printf("Line count: %d\n", line_count); *\/ */
-
-    /* int nums[line_count]; */
-
-    /* i = 0; */
-    /* int proc_id; // proc_id starts at 0 */
-
-    /* int lines_per_proc = line_count / num_proc; */
-
-    /* for (proc_id = 0; proc_id < num_proc; proc_id++) */
-    /* { */
-    /* 	char line[BUFFER_SIZE]; */
-
-    /* 	int total_nums_to_get; */
-
-    /* 	// if the last child, then also process any remainder */
-    /* 	// that results from unequal division */
-    /* 	if (proc_id == (num_proc - 1)) */
-    /* 	{ */
-    /* 	    total_nums_to_get = lines_per_proc + (line_count % num_proc); */
-    /* 	    /\* printf("Leftover to get: %d\n", total_nums_to_get); *\/ */
-    /* 	} */
-    /* 	else */
-    /* 	{ */
-    /* 	    total_nums_to_get = lines_per_proc; */
-    /* 	} */
-
-    /* 	// process total_nums_to_get */
-    /* 	int j; */
-    /* 	for (j = 0; j < total_nums_to_get; j++) */
-    /* 	{ */
-    /* 	    int index = proc_id * lines_per_proc + j; */
-    /* 	    fgets(line, sizeof(line), in_file); */
-    /* 	    nums[index] = atoi(line); */
-    /* 	} */
-
-    /* 	// can fork process to work on these */
-    /* 	pid_t fork_pid; */
-    /* 	fork_pid = fork(); */
-    /* 	if (fork_pid == 0) */
-    /* 	{ */
-    /* 	    // get part of file to work on, from parent */
-    /* 	    file_portion child_portion; */
-    /* 	    read(pipes_to_child[proc_id][0], &child_portion, sizeof(file_portion)); */
-
-    /* 	    // calculate sum of portion */
-    /* 	    int child_sum = add_nums(nums, child_portion); */
-    /* 	    /\* printf("proc_id %d sum: %d, offest: %d, num_elements: %d\n", proc_id, child_sum, offset, num_elements); *\/ */
-
-    /* 	    // send partial sum to parent */
-    /* 	    write(pipe_to_parent[1], &child_sum, sizeof(int)); */
-
-    /* 	    exit(EXIT_SUCCESS); */
-    /* 	} */
-    /* 	else */
-    /* 	{ */
-    /* 	    file_portion portion; */
-    /* 	    portion.offset = proc_id * lines_per_proc; */
-    /* 	    portion.num_elements = total_nums_to_get; */
-    /* 	    write(pipes_to_child[proc_id][1], &portion, sizeof(file_portion)); */
-
-    /* 	} */
-    /* } */
-
-
     
     int total_sum;
     total_sum = 0;
@@ -252,7 +185,6 @@ float time_process(char *filepath, int num_proc, int should_print_total)
     	// read partial sum from child
     	int child_sum;
     	read(pipe_to_parent[i][0], &child_sum, sizeof(int));
-    	/* printf("Sum received: %d\n", snum); */
     	total_sum += child_sum;
     }
 
@@ -266,14 +198,12 @@ float time_process(char *filepath, int num_proc, int should_print_total)
     // stop timer
     end = clock();
     time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-//    printf("Total time: %f seconds\n", time_spent);
 
     return time_spent;
 }
 
 int add_nums(file_portion portion)
 {
-
     // open file for reading
     FILE* in_file;
     in_file = fopen(portion.filepath, "r");
@@ -285,46 +215,25 @@ int add_nums(file_portion portion)
 
     int sum = 0;
     char num_string[BYTES_PER_LINE + 1]; // + 1???
-//    char num_string[BUFFER_SIZE]; // + 1???
 
     int i;
     fseek(in_file, portion.offset, SEEK_SET);
-    for (i = 0; i < portion.size; i++)
+    for (i = 0; i < portion.num_lines; i++)
     {
 	fgets(num_string, BYTES_PER_LINE, in_file);
-//	printf("(%d)=num: %d ", portion.offset, atoi(num_string));
     	sum += atoi(num_string);
-//	printf("proc w/ %d offset\n", portion.offset);
     }
 
     fclose(in_file);
-//    printf("portion size: %d\n", portion.size);
     return sum;
 }
 
-/* /\* */
-/*   Return a count of the number of lines in file. Before returning, */
-/*   this function resets the file position to the beginning of the */
-/*   file. */
-/*  *\/ */
-/* int count_lines(FILE* f) */
-/* { */
-/*     int count; */
-
-/*     count = 0; */
-/* //    int char_per_line = 0; */
-
-/*     while((ch = fgetc(f)) != EOF) */
-/*     { */
-/* //	char_per_line++; */
-/* 	if (ch == '\n') */
-/* 	{ */
-/* 	    count++; */
-/* //	    printf("char / line: %d", char_per_line); */
-/* //	    char_per_line = 0; */
-/* 	} */
-/*     } */
-
-/*     rewind(f); // reset position within file */
-/*     return count; */
-/* } */
+/* Check if string can be parsed to a number. This is
+   done by checking if the first character in the string
+   is a digit. (atoi will strip off non-numeric chars
+   after initial sequence of digits.)
+*/
+int is_num(char *str)
+{
+    return isdigit(str[0]);
+}
