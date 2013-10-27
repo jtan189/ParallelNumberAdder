@@ -35,7 +35,7 @@ double time_summation(char *filepath, int num_proc, int should_print);
 int is_num(char *str);
 
 // constant variables
-const int BYTES_PER_LINE = 4; // 3 digits + '\n' char
+const int BYTES_PER_LINE = 5; // 3 digits + '\r' + '\n'
 const char *FILE1 = "file1.dat";
 const char *FILE2 = "file2.dat";
 const char *FILE3 = "file3.dat";
